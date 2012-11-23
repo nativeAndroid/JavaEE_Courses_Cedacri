@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.example.COM" table="COM">
+		<id name="id_com" type="java.lang.Integer">
+			<column name="id_com" />
+			<generator class="increment" />
+		</id>
+		<set name="id_pc" table="PC" lazy="false">
+			<key column="id_pc" />
+			<one-to-many class="com.example.PC" />
+		</set>
+		<property name="nr_unit" type="java.lang.Integer">
+			<column name="nr_unit" />
+		</property>
+	</class>
+</hibernate-mapping>
