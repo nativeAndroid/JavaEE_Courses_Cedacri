@@ -1,11 +1,15 @@
 package com.example;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class PC {
 
 	private Integer id_pc = null;
 	private String name = null;
 	private String desc = null;
 	private Double price = null;
+
 
 	public Integer getId_pc() {
 		return id_pc;

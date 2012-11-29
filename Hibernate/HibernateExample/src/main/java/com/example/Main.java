@@ -1,23 +1,61 @@
 package com.example;
 
-import java.util.Collection;
-import java.util.Iterator;
+import java.awt.EventQueue;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
+import com.example.UI.MainFrame;
 
 public class Main {
-	@SuppressWarnings("rawtypes")
+
 	public static void main(String a[]) {
 
-		Collection comenzi = (Collection) Factory.getInstance().getCOMDAO()
-				.getAllCOM();
-
-		Iterator iterator = comenzi.iterator();
-
-		while (iterator.hasNext()) {
-			COM com = (COM) iterator.next();
-			System.out.println(com.getId_com()
-					+ ", " + com.getId_pc() + ", " + com.getnr_unit());
+		/*ArrayList<COM> com = null;
+		try {
+			com = Factory.getInstance().getCOMDAO().findByNrUnit(325);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
+		System.err.println(com.size());
+		
+		for(COM i : com)
+			System.out.println(i.getId_com() + ", " + i.getId_pc() + ", " + i.getNr_unit());
+*/
+		
+		
+		Runnable ui = new Runnable() {
+			
+			public void run() {
+
+					try {
+						UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+					} catch (ClassNotFoundException | InstantiationException
+							| IllegalAccessException
+							| UnsupportedLookAndFeelException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				
+				MainFrame main;
+				try {
+					main = new MainFrame();
+					main.setTitle("Exemplu Hibernate cu xml-mapping");
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+		};
+		
+		EventQueue.invokeLater(ui);
+		
 	}
 
 }

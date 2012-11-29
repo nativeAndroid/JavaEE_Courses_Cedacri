@@ -8,10 +8,10 @@
 			<column name="id_com" />
 			<generator class="increment" />
 		</id>
-		<set name="id_pc" table="PC" lazy="false">
-			<key column="id_pc" />
-			<one-to-many class="com.example.PC" />
-		</set>
+		<property name="id_pc" type="java.lang.Integer">
+			<column name="id_pc" />
+		</property>
+			
 		<property name="nr_unit" type="java.lang.Integer">
 			<column name="nr_unit" />
 		</property>
