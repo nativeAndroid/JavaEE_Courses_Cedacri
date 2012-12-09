@@ -4,10 +4,13 @@ import java.awt.EventQueue;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.jar.JarEntry;
 
+import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import com.example.UI.JAddPCDialog;
 import com.example.UI.MainFrame;
 
 public class Main {
@@ -41,7 +44,6 @@ public class Main {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				
 				MainFrame main;
 				try {
 					main = new MainFrame();
@@ -50,7 +52,6 @@ public class Main {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
 			}
 		};
 		

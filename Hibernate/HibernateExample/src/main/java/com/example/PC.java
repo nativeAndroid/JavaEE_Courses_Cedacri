@@ -7,9 +7,19 @@ public class PC {
 
 	private Integer id_pc = null;
 	private String name = null;
-	private String desc = null;
+	private String descr = null;
 	private Double price = null;
 
+	public PC(){
+		
+	}
+	
+	public PC(PC pc){
+		setId_pc(pc.getId_pc());
+		setName(pc.getName());
+		setDescr(pc.getDescr());
+		setPrice(pc.getPrice());
+	}
 
 	public Integer getId_pc() {
 		return id_pc;
@@ -27,12 +37,12 @@ public class PC {
 		this.name = name;
 	}
 
-	public String getDesc() {
-		return desc;
+	public String getDescr() {
+		return descr;
 	}
 
-	public void setDesc(String desc) {
-		this.desc = desc;
+	public void setDescr(String descr) {
+		this.descr = descr;
 	}
 
 	public Double getPrice() {

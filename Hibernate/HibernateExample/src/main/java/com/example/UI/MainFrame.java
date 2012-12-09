@@ -3,6 +3,8 @@ package com.example.UI;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,9 +17,11 @@ import java.util.TreeMap;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -39,10 +43,14 @@ public class MainFrame extends JFrame {
 	private JTable pc_table = null;
 	private JTable com_table = null;
 	private ArrayList<PC> pcs = new ArrayList<>();
-	private int[] pcs_nr_unit = null;
+	private int[] pcs_nr_unit = new int[1];
 	private ArrayList<COM> coms = new ArrayList<>();
 	private Map<Integer, PC> relat = new TreeMap<>();
 	private JButton buy = null;
+	private JButton delete = null;
+	private JButton new_pc = null;
+	private JFrame me = this;
+	JProgressDialog jpd = null;
 
 	public MainFrame() throws SQLException {
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -50,63 +58,101 @@ public class MainFrame extends JFrame {
 		main_panel = getRootPane();
 		main_panel.setLayout(new BorderLayout());
 		main_panel.setBackground(Color.white);
-		readPcs();
+		main_panel.setPreferredSize(new Dimension(500, 500));
 		tabbed_pane = new JTabbedPane();
 		tabbed_pane.addTab("Calculatoare", makePCPanel());
 		tabbed_pane.setMnemonicAt(0, KeyEvent.VK_1);
-
-		readComs();
 		tabbed_pane.addTab("Comenzi", makeCOMPanel());
 		tabbed_pane.setMnemonicAt(0, KeyEvent.VK_2);
 		tabbed_pane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-		tabbed_pane.setVisible(true);
 
 		main_panel.add(tabbed_pane, BorderLayout.CENTER);
-		main_panel.setPreferredSize(new Dimension(500, 500));
 
 		buy.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 
-				Session session = null;
+				jpd = new JProgressDialog(me, "Please Wait",
+						"Se efectuiaza comanda.");
+				/* COmmands are added here */
+				Runnable r = new Runnable() {
 
-				session = HibernateUtil.getSessionFactory().openSession();
-				session.beginTransaction();
-				for(int i = 0; i < pcs_nr_unit.length; i++)
-					if(pcs_nr_unit[i] > 0) {
-						
-						COM com = new COM();
-						com.setId_com(null);
-						com.setId_pc(pcs.get(i).getId_pc());
-						com.setNr_unit(pcs_nr_unit[i]);
+					@Override
+					public void run() {
+
+						int j = 0;
+						for (int i : pcs_nr_unit)
+							if (i > 0)
+								j++;
+						if (j == 0) {
+							me.setEnabled(true);
+							jpd.setVisible(false);
+							return;
+						}
+
+						for (int i = 0; i < pcs_nr_unit.length; i++)
+							if (pcs_nr_unit[i] > 0) {
+
+								COM com = new COM();
+								com.setId_com(null);
+								com.setId_pc(pcs.get(i).getId_pc());
+								com.setNr_unit(pcs_nr_unit[i]);
+								try {
+									Factory.getInstance().getCOMDAO().add(com);
+								} catch (SQLException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+								pcs_nr_unit[i] = 0;
+
+							}
+
 						try {
-							Factory.getInstance().getCOMDAO().add(com);
+							readComs();
 						} catch (SQLException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						pcs_nr_unit[i] = 0;
-						
+						jpd.setVisible(false);
+						setEnabled(true);
 					}
 
-				session.getTransaction().commit();
+				};
+
+				setEnabled(false);
+				jpd.setVisible(true);
+				(new Thread(r)).start();
+
+			}
+		});
+
+		setResizable(false);
+		pack();
+		setVisible(true);
+		jpd = new JProgressDialog(me, "Please Wait",
+				"Incarcarea datelor din baza de date.");
+
+		/* Initial data loading from tables */
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				readPcs();
 				try {
 					readComs();
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				((AbstractTableModel)com_table.getModel()).fireTableDataChanged();
-				com_table.repaint();
-				
-				
+				me.setEnabled(true);
+				jpd.setVisible(false);
+
 			}
-		});
-		
-		setResizable(false);
-		pack();
-		setVisible(true);
+		};
+
+		setEnabled(false);
+		jpd.setVisible(true);
+		(new Thread(r)).start();
 
 	}
 
@@ -125,10 +171,10 @@ public class MainFrame extends JFrame {
 			@Override
 			public boolean isCellEditable(int row, int col) {
 				switch (col) {
-				case 3:
-					return true;
-				default:
+				case 0:
 					return false;
+				default:
+					return true;
 				}
 			}
 
@@ -138,12 +184,14 @@ public class MainFrame extends JFrame {
 				switch (column) {
 
 				case 0:
-					return "Name";
+					return "Id";
 				case 1:
-					return "Description";
+					return "Name";
 				case 2:
-					return "Price";
+					return "Description";
 				case 3:
+					return "Price";
+				case 4:
 					return "Nr Unitati";
 
 				}
@@ -157,10 +205,12 @@ public class MainFrame extends JFrame {
 				switch (arg1) {
 
 				case 0:
-					return pcs.get(arg0).getName();
+					return pcs.get(arg0).getId_pc();
 				case 1:
-					return pcs.get(arg0).getDesc();
+					return pcs.get(arg0).getName();
 				case 2:
+					return pcs.get(arg0).getDescr();
+				case 3:
 					return pcs.get(arg0).getPrice();
 				default:
 					return pcs_nr_unit[arg0];
@@ -172,14 +222,50 @@ public class MainFrame extends JFrame {
 			@Override
 			public void setValueAt(Object arg0, int arg1, int arg2) {
 
-				int newValue = 0;
-				try {
-					newValue = Integer.valueOf((String) arg0);
-				} catch (Exception e) {
-				}
-
-				if (arg2 == 3)
+				if (arg2 == 4) {
+					int newValue = 0;
 					pcs_nr_unit[arg1] = newValue;
+					try {
+						newValue = Integer.valueOf((String) arg0);
+					} catch (Exception e) {
+					}
+				} else {
+					PC pc = new PC(pcs.get(arg1));
+					switch (arg2) {
+					case 1:
+						pcs.get(arg1).setName((String) arg0);
+						break;
+					case 2:
+						pcs.get(arg1).setDescr((String) arg0);
+						break;
+					case 3: {
+						double aux = 0;
+						try {
+							aux = Double.valueOf((String) arg0);
+						} catch (NumberFormatException e) {
+
+						}
+						pcs.get(arg1).setPrice(aux);
+					}
+						break;
+					}
+
+					try {
+						if (!pc.getName().equals(pcs.get(arg1).getName())
+								|| !pc.getDescr().equals(
+										pcs.get(arg1).getDescr())
+								|| !pc.getPrice().equals(
+										pcs.get(arg1).getPrice()))
+							Factory.getInstance()
+									.getPCDAO()
+									.update(pcs.get(arg2).getId_pc(),
+											pcs.get(arg2));
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				}
 			}
 
 			@Override
@@ -192,7 +278,7 @@ public class MainFrame extends JFrame {
 			@Override
 			public int getColumnCount() {
 
-				return 4;
+				return 5;
 
 			}
 		};
@@ -201,8 +287,39 @@ public class MainFrame extends JFrame {
 		JScrollPane sp = new JScrollPane(pc_table);
 		sp.setPreferredSize(new Dimension(450, 300));
 		aux.add(sp, BorderLayout.CENTER);
+		JPanel button_bar = new JPanel(new FlowLayout());
 		buy = new JButton("Buy");
-		aux.add(buy, BorderLayout.SOUTH);
+		new_pc = new JButton("New");
+		delete = new JButton("Delete");
+
+		new_pc.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+
+				JAddPCDialog apd = new JAddPCDialog(me);
+				if (apd.getState())
+					readPcs();
+			}
+		});
+
+		delete.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+
+				Factory.getInstance()
+						.getPCDAO()
+						.removeByPCId(
+								pcs.get(pc_table.getSelectedRow()).getId_pc());
+				readPcs();
+			}
+		});
+
+		button_bar.add(new_pc);
+		button_bar.add(delete);
+		button_bar.add(buy);
+		aux.add(button_bar, BorderLayout.SOUTH);
 		aux.setPreferredSize(new Dimension(450, 300));
 		return aux;
 
@@ -285,16 +402,18 @@ public class MainFrame extends JFrame {
 		return aux;
 
 	}
-	
-	public void readPcs(){
-		
+
+	public void readPcs() {
+
 		pcs = Factory.getInstance().getPCDAO().getAll();
 		pcs_nr_unit = new int[pcs.size()];
-		
+		((AbstractTableModel) pc_table.getModel()).fireTableDataChanged();
+		pc_table.repaint();
+
 	}
-	
-	public void readComs() throws SQLException{
-		
+
+	public void readComs() throws SQLException {
+
 		coms.clear();
 		relat.clear();
 		coms = Factory.getInstance().getCOMDAO().getAll();
@@ -304,6 +423,7 @@ public class MainFrame extends JFrame {
 			relat.put(i.getId_com(), Factory.getInstance().getPCDAO()
 					.getByPCId(i.getId_pc()));
 
-		
+		((AbstractTableModel) com_table.getModel()).fireTableDataChanged();
+		com_table.repaint();
 	}
 }

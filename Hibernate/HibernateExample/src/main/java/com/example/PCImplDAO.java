@@ -34,7 +34,10 @@ public class PCImplDAO implements PCDAO{
 		try {
 			session = HibernateUtil.getSessionFactory().openSession();
 			session.beginTransaction();
-			session.update(pc);
+			if(session.get(PC.class, id) != null)
+				session.merge(pc);
+			else
+				session.save(pc);
 			session.getTransaction().commit();
 			return true;
 		} catch (Exception e) {
@@ -55,6 +58,7 @@ public class PCImplDAO implements PCDAO{
 		PC pc = null;
 		try {
 			session = HibernateUtil.getSessionFactory().openSession();
+			session.beginTransaction();
 			pc = (PC) session.get(PC.class, id);
 			session.delete(pc);
 			session.getTransaction().commit();

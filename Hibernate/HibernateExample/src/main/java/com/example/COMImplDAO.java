@@ -38,7 +38,10 @@ public class COMImplDAO implements COMDAO {
 		try {
 			session = HibernateUtil.getSessionFactory().openSession();
 			session.beginTransaction();
-			session.update(com);
+			if(session.get(COM.class, id) != null)
+				session.merge(com);
+			else
+				session.save(com);
 			session.getTransaction().commit();
 			return true;
 		} catch (Exception e) {
