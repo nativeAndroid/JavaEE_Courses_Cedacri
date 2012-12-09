@@ -1,0 +1,2 @@
+﻿	Însarcinarea:
+	Realizarea in Hibernate (xml-mapping) a structurii bazei de date primite anterior, ce constă din două tabele (PC, COM). Și scrierea interfețelor DAO și claselor ImplDAO care vor realiza o funcționalitate pentru tabele.
